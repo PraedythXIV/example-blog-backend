@@ -1,4 +1,5 @@
 import { config } from "dotenv"
+import hashPassword from "../hashPassword.js"
 import validate from "../middlewares/validate.js"
 import {
   validateEmail,
@@ -26,6 +27,8 @@ const makeUsersRoutes = ({ app, db }) => {
     }),
     async (req, res) => {
       const { email, password, username, firstName, lastName } = req.body
+      const [passwordHash, passwordSalt] = hashPassword(password)
+
       try{
       const [user] = await db("users")
         .insert({
@@ -33,17 +36,16 @@ const makeUsersRoutes = ({ app, db }) => {
           firstName,
           lastName,
           email,
-          passwordHash: password, // TODO hash
-          passwordSalt: password, // TODO hash
+          passwordHash,
+          passwordSalt,
         })
         .returning("*")
 
       res.send(user) // TODO never send password, even hash!!!
       } catch (err) {
         if (err.code === '23505') {
-          res.status(409).send({error:[`Duplicated value for "${err.
-            detail.match(/^Key \((\w+)/)
-          [1]}"`,
+          res.status(409).send({error: [
+            `Duplicated value for "${err.detail.match(/^Key \((\w+)\)/)[1]}"`,
           ],
           })
 
@@ -123,10 +125,26 @@ app.patch(
 
         return
       }
+
+      let passwordHash
+      let passwordSalt
+      if (password) {
+        const [hash, salt] = hashPassword(password, user.passwordSalt)
+        passwordHash = hash
+        passwordSalt = salt
+      }
+      
       try{
-      const [updatedUser] = await db("users").where({id: userId})
+      const [updatedUser] = await db("users")
+      .where({id: userId})
       .update({
-        username, firstName, lastName, email, passwordHash: password, passwordSalt: password
+        username,
+        firstName,
+        lastName,
+        email,
+        passwordHash: password,
+        passwordSalt: password,
+        updatedAt : new Date(),
       }).returning("*")
 
       res.send(updatedUser)
