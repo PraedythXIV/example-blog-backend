@@ -58,7 +58,7 @@ export const validateLastName = yup
 
 export const validateId = yup.number().integer().min(1).label("User ID")
 
-//Validate username or email
+//Validate username or email for login session
 export const validateEmailOrUsername = yup
 .string()
 .min(2)
