@@ -58,6 +58,13 @@ export const validateLastName = yup
 
 export const validateId = yup.number().integer().min(1).label("User ID")
 
+//Validate username or email
+export const validateEmailOrUsername = yup
+.string()
+.min(2)
+.label("Email or username")
+
+
 //displayName
 export const validateDisplayName = yup
   .string()
