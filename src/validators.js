@@ -3,16 +3,16 @@ import config from "./config.js"
 
 //validate page
 export const validateLimit = yup
-.number()
-.min(config.view.results.minLimit)
-.max(config.view.results.maxLimit)
-.integer()
-.default(config.view.results.defaultLimit)
+  .number()
+  .min(config.view.results.minLimit)
+  .max(config.view.results.maxLimit)
+  .integer()
+  .default(config.view.results.defaultLimit)
 
 export const validateOffset = yup
-.number()
-.min(0)
-.integer()
+  .number()
+  .min(0)
+  .integer()
 
 //validate users
 export const validateEmail = yup
@@ -50,15 +50,15 @@ export const validateFirstName = yup
   .label("First Name")
 
 export const validateLastName = yup
- .string()
- .min(2)
- .max(15)
- .matches(
-   /^[a-z][a-z0-9._]*/,
-    "first name must contain only letters, numbers, '.' and '_'"
-  )
-  .trim()
-  .label("Last Name")
+  .string()
+  .min(2)
+  .max(15)
+  .matches(
+    /^[a-z][a-z0-9._]*/,
+      "first name must contain only letters, numbers, '.' and '_'"
+    )
+    .trim()
+    .label("Last Name")
 
 export const validateId = yup
   .number()
@@ -68,10 +68,24 @@ export const validateId = yup
 
 //Validate username or email for login session
 export const validateEmailOrUsername = yup
-.string()
-.min(2)
-.label("Email or username")
+  .string()
+  .min(2)
+  .label("Email or username")
 
+//validate posts
+export const validatePostTitle = yup
+  .string()
+  .min(1)
+  .label("Title")
+
+export const validatePostContent = yup
+  .string()
+  .min(1)
+  .label("Content")
+  
+export const validatePublishedAt = yup
+  .date()
+  .label("Published at")
 
 //validate profil
 export const validateDisplayName = yup
@@ -104,6 +118,9 @@ export const validateAvatar = yup
         .mixed()
         .nullable()
         .required('A file is required')
-        .test('file size', 'upload file', (value) => !value || (value && value.size <= 1024 * 1024))
-        .test('format', 'upload file', (value) => !value || (value && SUPPORTED_FORMATS.includes(value.type))),
+        .test('file size', 'upload file',
+          (value) => !value || (value && value.size <= 1024 * 1024))
+        .test('format', 'upload file',
+          (value) => !value || (value && SUPPORTED_FORMATS.includes(value.type))),
     });
+    

@@ -1,6 +1,8 @@
 import validate from "../middlewares/validate.js"
 import {validateEmailOrUsername, validatePassword} from "../validators.js"
 import hashPassword from "../hashPassword.js"
+import jsonwebtoken from "jsonwebtoken"
+import config from "../config.js"
 
 const makeSessionRoutes = ({ app, db }) => {
     app.post("/sign-in", validate({
@@ -33,7 +35,20 @@ const makeSessionRoutes = ({ app, db }) => {
             return
         }
 
-        res.send({result: {status:"OK"} })
+        const jwt = jsonwebtoken.sign(
+            {
+                session: {
+                    user: {
+                        Id: user.id,
+                        username: user.username,
+                    },
+                },
+            },
+            config.security.jwt.secret,
+            { expiresIn: config.security.jwt.expiresIn, }
+        )
+
+        res.send({result: { jwt } })
     })
 }
 
