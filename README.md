@@ -3,11 +3,12 @@
 # # process.env
 
 ```
+SERVER_PORT=
 DB_USER=
 DB_HOST=
-SERVER_PORT=
 DB_PASSWORD=
 DB_DATABASE=
+SECURITY_PASSWORD_PEPPER=
 ```
 
 Additionally, add any
