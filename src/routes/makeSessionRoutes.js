@@ -1,5 +1,5 @@
 import validate from "../middlewares/validate.js"
-import {validateEmail, validateEmailOrUsername, validatePassword, validateUsername} from "../validators.js"
+import {validateEmailOrUsername, validatePassword} from "../validators.js"
 import hashPassword from "../hashPassword.js"
 
 const makeSessionRoutes = ({ app, db }) => {

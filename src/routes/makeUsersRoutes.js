@@ -1,4 +1,3 @@
-import { config } from "dotenv"
 import hashPassword from "../hashPassword.js"
 import validate from "../middlewares/validate.js"
 import {
@@ -13,6 +12,7 @@ import {
 } from "../validators.js"
 
 const makeUsersRoutes = ({ app, db }) => {
+  
   //CREATE
   app.post(
     "/users",
@@ -41,7 +41,7 @@ const makeUsersRoutes = ({ app, db }) => {
         })
         .returning("*")
 
-      res.send(user) // TODO never send password, even hash!!!
+      res.send(user)
       } catch (err) {
         if (err.code === '23505') {
           res.status(409).send({error: [
@@ -58,6 +58,7 @@ const makeUsersRoutes = ({ app, db }) => {
       }
     }
   )
+
   //READ collection
   app.get(
       "/users",
@@ -76,6 +77,7 @@ const makeUsersRoutes = ({ app, db }) => {
       res.send(users)
     }
   )
+
   //READ single
   app.get(
     "/users/:userId",
