@@ -14,8 +14,12 @@ export const validateOffset = yup
 .min(0)
 .integer()
 
-//users
-export const validateEmail = yup.string().email().trim().label("E-mail")
+//validate users
+export const validateEmail = yup
+  .string()
+  .email()
+  .trim()
+  .label("E-mail")
 
 export const validatePassword = yup
   .string()
@@ -56,7 +60,11 @@ export const validateLastName = yup
   .trim()
   .label("Last Name")
 
-export const validateId = yup.number().integer().min(1).label("User ID")
+export const validateId = yup
+  .number()
+  .integer()
+  .min(1)
+  .label("User ID")
 
 //Validate username or email for login session
 export const validateEmailOrUsername = yup
@@ -65,7 +73,7 @@ export const validateEmailOrUsername = yup
 .label("Email or username")
 
 
-//displayName
+//validate profil
 export const validateDisplayName = yup
   .string()
   .min(1)
@@ -73,3 +81,29 @@ export const validateDisplayName = yup
   .trim()
   .matches(/[^\n\r\u00a0]/)
   .label("Display Name")
+
+export const validateAccountStatus = yup
+  .object()
+  .shape(
+    {
+      showStatus: yup
+        .boolean(),
+      status: yup
+        .when(
+          "showStatus",
+          { is: true, }
+        )
+    })
+
+const SUPPORTED_FORMATS = ['image/jpg', 'image/jpeg', 'image/png'];
+export const validateAvatar = yup
+  .object()
+  .shape(
+    {
+      uriImage: yup
+        .mixed()
+        .nullable()
+        .required('A file is required')
+        .test('file size', 'upload file', (value) => !value || (value && value.size <= 1024 * 1024))
+        .test('format', 'upload file', (value) => !value || (value && SUPPORTED_FORMATS.includes(value.type))),
+    });
