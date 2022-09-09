@@ -27,7 +27,7 @@ const makePostsRoutes = ({ app, db }) => {
     async (req, res) => {
       const {
         body: { title, content, publishedAt },
-        session: { user },
+        session: { userProfil },
       } = req
 
       const [post] = await db("posts")
@@ -35,7 +35,7 @@ const makePostsRoutes = ({ app, db }) => {
           title,
           content,
           publishedAt,
-          userId: user.id,
+          userProfilId: userProfil.id,
         })
         .returning("*")
 
@@ -62,7 +62,7 @@ const makePostsRoutes = ({ app, db }) => {
         .orderBy("publishedAt", "DESC")
       const countQuery = db("posts").count().whereNotNull("publishedAt")
 
-      if (userId) {
+      if (userProfilId) {
         postsQuery.where({ userId })
         countQuery.where({ userId })
       }

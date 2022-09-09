@@ -23,14 +23,14 @@ const makeCommentsRoutes = ({ app, db }) => {
     async (req, res) => {
       const {
         body: { content, postId },
-        session: { user },
+        session: { userProfil },
       } = req
 
       const [comment] = await db("comments")
         .insert({
           content,
           postId,
-          userId: user.id,
+          userProfilId: userProfil.id,
         })
         .returning("*")
 
@@ -60,8 +60,8 @@ const makeCommentsRoutes = ({ app, db }) => {
       }
 
       if (userId) {
-        commentsQuery.where({ userId })
-        countQuery.where({ userId })
+        commentsQuery.where({ userProfilId })
+        countQuery.where({ userProfilId })
       }
 
       if (search) {
