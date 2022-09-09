@@ -124,3 +124,8 @@ export const validateAvatar = yup
           (value) => !value || (value && SUPPORTED_FORMATS.includes(value.type))),
     });
     
+//Validate comments
+
+export const validateSearch = yup.string().min(3).label("Search terms")
+
+export const validateCommentContent = validatePostContent.label("Comment content")
