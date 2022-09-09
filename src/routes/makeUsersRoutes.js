@@ -1,3 +1,4 @@
+import filterDBResult from "../filterResult.js"
 import hashPassword from "../hashPassword.js"
 import validate from "../middlewares/validate.js"
 import {
@@ -41,12 +42,13 @@ const makeUsersRoutes = ({ app, db }) => {
         })
         .returning("*")
 
-      res.send(user)
+      res.send({ result: filterDBResult([user]), count: 1 }) // filter sensitive data
       } catch (err) {
-        if (err.code === '23505') {
-          res.status(409).send({error: [
-            `Duplicated value for "${err.detail.match(/^Key \((\w+)\)/)[1]}"`,
-          ],
+        if (err.code === "23505") {
+          res.status(409).send({
+            error: [
+              `Duplicated value for "${err.detail.match(/^Key \((\w+)\)/)[1]}"`,
+            ],
           })
 
           return
@@ -69,12 +71,11 @@ const makeUsersRoutes = ({ app, db }) => {
       },
     }),
     async (req, res) => {
-      const { offset, limit } = req.query
-      const users = await db("users")
-        .limit(limit)
-        .offset(offset * limit)
+      const { limit, offset } = req.query
+      const users = await db("users").limit(limit).offset(offset)
+      const [{ count }] = await db("users").count()
 
-      res.send(users)
+      res.send({ result: filterDBResult(users), count })
     }
   )
 
@@ -87,16 +88,16 @@ const makeUsersRoutes = ({ app, db }) => {
     },
   }),
   async (req, res) => {
-    const {userId} = req.params
+    const { userId } = req.params
     const [user] = await db("users").where({id: userId})
 
-    if (user) {
+    if (!user) {
       res.status(404).send({error: ["User not found"] })
 
       return
     }
     
-    res.send(user)
+    res.send({ result: filterDBResult([user]), count: 1})
   }
 )
 
@@ -120,18 +121,22 @@ app.patch(
         params: { userId },
         body: { username, firstName, lastName, email, password },
       } = req
+
       const [user] = await db("users").where({id: userId})
 
-      if (user) {
+      if (!user) {
         res.status(404).send({error: ["User not found"] })
 
         return
+
       }
 
       let passwordHash
       let passwordSalt
+
       if (password) {
-        const [hash, salt] = hashPassword(password, user.passwordSalt)
+        const [hash, salt] = hashPassword(password)
+
         passwordHash = hash
         passwordSalt = salt
       }
@@ -144,27 +149,29 @@ app.patch(
         firstName,
         lastName,
         email,
-        passwordHash: password,
-        passwordSalt: password,
+        passwordHash,
+        passwordSalt,
         updatedAt : new Date(),
-      }).returning("*")
+      })
+      .returning("*")
 
-      res.send(updatedUser)
-    } catch (err) {
-      if (err.code === '23505') {
-        res.status(409).send({error:[`Duplicated value for "${err.
-          detail.match(/^Key \((\w+)/)
-        [1]}"`,
-        ],
-        })
+      res.send({ result: updatedUser, count: 1 })
+      } catch (err) {
+        if (err.code === "23505") {
+          res.status(409).send({
+            error: [
+              `Duplicated value for "${err.detail.match(/^Key \((\w+)\)/)[1]}"`,
+            ],
+          })
 
-        return
+          return
+        }
+
+        // eslint-disable-next-line no-console
+        console.error(err)
+
+        res.status(500).send({ error: "Oops. Something went wrong." })
       }
-
-      console.error(err)
-
-      res.status(500).send({error:"Oops. Something went wrong."})
-    }
     }
   )
 
@@ -180,14 +187,14 @@ app.patch(
       const {userId} = req.params
       const [user] = await db("users").where({id: userId})
 
-      if (user) {
+      if (!user) {
         res.status(404).send({error: ["User not found"] })
 
         return
       }
       await db("users").delete().where({id: userId})
 
-      res.send(user)
+      res.send({ result: filterDBResult([user]), count: 1 })
     }
   )
 }
