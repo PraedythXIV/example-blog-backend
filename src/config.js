@@ -21,7 +21,7 @@ const config = {
     },
     migrations: {
       directory: "./src/db/migrations",
-      stub: "./src/db/migration.stub",
+      stub: "./src/db/migrations.stub",
     },
   },
   security: {
