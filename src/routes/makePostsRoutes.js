@@ -1,6 +1,6 @@
+import filterDBResult from "../filterDBResult.js"
 import auth from "../middlewares/auth.js"
 import validate from "../middlewares/validate.js"
-import filterDBResult from "../filterDBResult.js"
 import {
   validateId,
   validateLimit,
@@ -12,7 +12,6 @@ import {
 } from "../validators.js"
 
 const makePostsRoutes = ({ app, db }) => {
-
   // CREATE
   app.post(
     "/posts",
@@ -56,6 +55,12 @@ const makePostsRoutes = ({ app, db }) => {
     async (req, res) => {
       const { limit, offset, userId, search } = req.query
       const postsQuery = db("posts")
+        .select(
+          "posts.*",
+          "userProfils.id AS userProfils:id",
+          "userProfils.displayName AS userProfils:displayName"
+        )
+        .innerJoin("userProfils", "userProfils.id", "=", "posts.userProfilId")
         .limit(limit)
         .offset(offset)
         .whereNotNull("publishedAt")
@@ -81,7 +86,23 @@ const makePostsRoutes = ({ app, db }) => {
         )
       }
 
-      const posts = await postsQuery
+      const posts = (await postsQuery).map((post) =>
+        Object.entries(post).reduce(
+          (xs, [key, value]) => {
+            if (key.startsWith("userProfils:")) {
+              xs.user[key.slice(6)] = value
+
+              return xs
+            }
+
+            xs[key] = value
+
+            return xs
+          },
+          { userProfil: {} }
+        )
+      )
+
       const [{ count }] = await countQuery
 
       res.send({ result: filterDBResult(posts), count })
@@ -106,7 +127,22 @@ const makePostsRoutes = ({ app, db }) => {
         return
       }
 
-      res.send({ result: [post], count: 1 })
+      const formattedPost = Object.entries(post).reduce(
+        (xs, [key, value]) => {
+          if (key.startsWith("userProfils:")) {
+            xs.userProfil[key.slice(6)] = value
+
+            return xs
+          }
+
+          xs[key] = value
+
+          return xs
+        },
+        { userProfil: {} }
+      )
+
+      res.send({ result: [formattedPost], count: 1 })
     }
   )
   // UPDATE partial

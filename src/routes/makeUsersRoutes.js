@@ -1,4 +1,4 @@
-import filterDBResult from "../filterResult.js"
+import filterDBResult from "../filterDBResult.js"
 import hashPassword from "../hashPassword.js"
 import validate from "../middlewares/validate.js"
 import {
@@ -13,8 +13,7 @@ import {
 } from "../validators.js"
 
 const makeUsersRoutes = ({ app, db }) => {
-  
-  //CREATE
+  // CREATE
   app.post(
     "/users",
     validate({
@@ -30,19 +29,19 @@ const makeUsersRoutes = ({ app, db }) => {
       const { email, password, username, firstName, lastName } = req.body
       const [passwordHash, passwordSalt] = hashPassword(password)
 
-      try{
-      const [user] = await db("users")
-        .insert({
-          username,
-          firstName,
-          lastName,
-          email,
-          passwordHash,
-          passwordSalt,
-        })
-        .returning("*")
+      try {
+        const [user] = await db("users")
+          .insert({
+            email,
+            username,
+            firstName,
+            lastName,
+            passwordHash,
+            passwordSalt,
+          })
+          .returning("*")
 
-      res.send({ result: filterDBResult([user]), count: 1 }) // filter sensitive data
+        res.send({ result: filterDBResult([user]), count: 1 }) // filter sensitive data
       } catch (err) {
         if (err.code === "23505") {
           res.status(409).send({
@@ -54,20 +53,20 @@ const makeUsersRoutes = ({ app, db }) => {
           return
         }
 
+        // eslint-disable-next-line no-console
         console.error(err)
 
-        res.status(500).send({error:"Oops. Something went wrong."})
+        res.status(500).send({ error: ["Oops. Something went wrong."] })
       }
     }
   )
-
-  //READ collection
+  // READ collection
   app.get(
-      "/users",
-      validate({
+    "/users",
+    validate({
       query: {
-        offset: validateOffset,
         limit: validateLimit,
+        offset: validateOffset,
       },
     }),
     async (req, res) => {
@@ -78,57 +77,54 @@ const makeUsersRoutes = ({ app, db }) => {
       res.send({ result: filterDBResult(users), count })
     }
   )
-
-  //READ single
+  // READ single
   app.get(
     "/users/:userId",
     validate({
-    params: {
-      userId: validateId.required(),
-    },
-  }),
-  async (req, res) => {
-    const { userId } = req.params
-    const [user] = await db("users").where({id: userId})
+      params: {
+        userId: validateId.required(),
+      },
+    }),
+    async (req, res) => {
+      const { userId } = req.params
+      const [user] = await db("users").where({ id: userId })
 
-    if (!user) {
-      res.status(404).send({error: ["User not found"] })
+      if (!user) {
+        res.status(404).send({ error: ["User not found."] })
 
-      return
+        return
+      }
+
+      res.send({ result: filterDBResult([user]), count: 1 })
     }
-    
-    res.send({ result: filterDBResult([user]), count: 1})
-  }
-)
-
-//UPDATE partial
-app.patch(
-  "/users/:userId",
-  validate({
-    params: {
-      userId: validateId.required(),
-    },
-    body: {
-      email: validateEmail,
-      password: validatePassword,
-      username: validateUsername,
-      firstName: validateFirstName,
-      lastName: validateLastName,
-    },
-  }),
+  )
+  // UPDATE partial
+  app.patch(
+    "/users/:userId",
+    validate({
+      params: {
+        userId: validateId.required(),
+      },
+      body: {
+        email: validateEmail,
+        password: validatePassword,
+        username: validateUsername,
+        firstName: validateFirstName,
+       lastName: validateLastName,
+      },
+    }),
     async (req, res) => {
       const {
         params: { userId },
         body: { username, firstName, lastName, email, password },
       } = req
 
-      const [user] = await db("users").where({id: userId})
+      const [user] = await db("users").where({ id: userId })
 
       if (!user) {
-        res.status(404).send({error: ["User not found"] })
+        res.status(404).send({ error: ["User not found."] })
 
         return
-
       }
 
       let passwordHash
@@ -140,22 +136,22 @@ app.patch(
         passwordHash = hash
         passwordSalt = salt
       }
-      
-      try{
-      const [updatedUser] = await db("users")
-      .where({id: userId})
-      .update({
-        username,
-        firstName,
-        lastName,
-        email,
-        passwordHash,
-        passwordSalt,
-        updatedAt : new Date(),
-      })
-      .returning("*")
 
-      res.send({ result: updatedUser, count: 1 })
+      try {
+        const [updatedUser] = await db("users")
+          .where({ id: userId })
+          .update({
+            username,
+           firstName,
+           lastName,
+           email,
+            passwordHash,
+            passwordSalt,
+            updatedAt: new Date(),
+          })
+          .returning("*")
+
+        res.send({ result: updatedUser, count: 1 })
       } catch (err) {
         if (err.code === "23505") {
           res.status(409).send({
@@ -174,25 +170,25 @@ app.patch(
       }
     }
   )
-
-//DELETE
+  // DELETE
   app.delete(
-      "/users/:userId",
-      validate({
+    "/users/:userId",
+    validate({
       params: {
         userId: validateId.required(),
       },
     }),
     async (req, res) => {
-      const {userId} = req.params
-      const [user] = await db("users").where({id: userId})
+      const { userId } = req.params
+      const [user] = await db("users").where({ id: userId })
 
       if (!user) {
-        res.status(404).send({error: ["User not found"] })
+        res.status(404).send({ error: ["User not found."] })
 
         return
       }
-      await db("users").delete().where({id: userId})
+
+      await db("users").delete().where({ id: userId })
 
       res.send({ result: filterDBResult([user]), count: 1 })
     }
